@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<body>
+	<!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
+	<div id="player"></div>
+
+	<script>
+		var vID;
+		var player;
+		var pVars;
+		
+		
+		function m_loadVideo(vidID) {
+			console.log("m_loadVideo------------>vidID = " + vidID);
+			vID = vidID;
+			var tag = document.createElement('script');
+
+			tag.src = "https://www.youtube.com/iframe_api";
+			var firstScriptTag = document.getElementsByTagName('script')[0];
+			firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+			pVars = {/*'autohide' : 1, 'autoplay': 1,*/
+				controls : 0,
+				playsinline : 1,
+				autohide : 1,
+				showinfo : 0,
+				modestbranding : 1,
+				height : '100%',
+				width : '100%'
+			};
+		}
+		
+
+		
+		function onYouTubeIframeAPIReady() {
+			console.log("onYouTubeIframeAPIReady------------>");
+			player = new YT.Player('player', {
+
+				videoId : vID, //'M7lc1UVf-VE',
+				playerVars : pVars,
+				events : {
+					'onReady' : onPlayerReady,
+					'onStateChange' : onPlayerStateChange,
+					'onPlaybackQualityChange' : onPlayerPlaybackQualityChange,
+					'onError' : onPlayerError
+				}
+			});
+			player.setSize(window.innerWidth,window.innerHeight);
+			
+			// this will transmit playTime frequently while playng
+	        function getCurrentTime() {
+	             var state = player.getPlayerState();
+	             if (state == YT.PlayerState.PLAYING) {
+	                 time = player.getCurrentTime()
+	                 //window.location.href = 'ytplayer://onPlayTime?data=' + time;
+	                 onPlayTime(time);
+	             }
+	        }
+	        
+	        window.setInterval(getCurrentTime, 1000);
+		}
+		
+		function setTotalVideoDuration(){
+			//return player.getDuration();
+			JSHandler.setTotalVideoDuration(player.getDuration());
+		}
+
+		
+		function onPlayTime(time){
+			console.log("onPlayTime------------> time = " + time);
+			JSHandler.setVideoDuration(time);
+
+		}
+		// 4. The API will call this function when the video player is ready.
+		function onPlayerReady(event) {
+			console.log("onPlayerReady------------>");
+			//event.target.playVideo();
+			
+			setTotalVideoDuration();
+		}
+
+		// 5. The API calls this function when the player's state changes.
+		//    The function indicates that when playing a video (state=1),
+		//    the player should play for six seconds and then stop.
+
+		/**
+		onPlayerStateChangeevent.data can be one of the below values
+
+		0 (ended)				    YT.PlayerState.ENDED
+		1 (playing)					YT.PlayerState.PLAYING
+		2 (paused)					YT.PlayerState.PAUSED
+		3 (buffering)				YT.PlayerState.BUFFERING
+		5 (video cued).				YT.PlayerState.CUED
+
+
+		 */
+
+		var done = false;
+		function onPlayerStateChange(event) {
+			console.log("onPlayerStateChange------------>" + event.data);
+			//if (event.data == YT.PlayerState.PLAYING && !done) {
+			//  setTimeout(m_stopVideo, 6000);
+			//  done = true;
+			//}
+			if(event.data == YT.PlayerState.ENDED){
+				JSHandler.videoEnd();
+			}
+		}
+
+		function m_stopVideo() {
+			console.log("m_stopVideo------------>");
+			player.stopVideo();
+		}
+
+		function m_playVideo() {
+			console.log("m_playVideo------------>");
+			player.playVideo();
+		}
+
+		function m_pauseVideo() {
+			console.log("m_pauseVideo------------>");
+			player.pauseVideo();
+		}
+		
+		function m_seekVideo(time){
+			console.log("m_seekVideo------------>time = " + time);
+			player.seekTo(time, true);
+		}
+
+		function onPlayerPlaybackQualityChange(event) {
+			console.log("onPlayerPlaybackQualityChange------------>"
+					+ event.data);
+
+		}
+
+		function onPlayerError(event) {
+			console.log("onPlayerError------------>" + event.data);
+
+		}
+	</script>
+</body>
+</html>
